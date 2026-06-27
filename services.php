@@ -1,5 +1,7 @@
 <?php
 
+namespace Services;
+
 require_once "repository.php";
 require_once "validator.php";
 
@@ -12,21 +14,36 @@ function saisieWallets() : array {
     return $wallet;
 }
 
+// function creerWalletService() : void {
+//     $wallets  = getWallets();
+//     $wallet   = saisieWallets();
+//     $erreur   = validerWallet($wallets, $wallet);
+
+//     if ($erreur !== null) {
+//         echo "Erreur : " . $erreur . "\n";
+//         return;
+//     }
+
+//     // $wallets[] = $wallet;
+//     // setWallets($wallets);
+
+//     array_push($wallets, $wallet);
+//     setWallets($wallets);
+//     echo "Wallet créé avec succès !\n";
+// }
+
 function creerWalletService() : void {
-    $wallets  = getWallets();
-    $wallet   = saisieWallets();
-    $erreur   = validerWallet($wallets, $wallet);
+    $wallets = \Repository\getWallets();
+    $wallet  = saisieWallets();
+    $erreur  = \Validator\validerWallet($wallets, $wallet);
 
     if ($erreur !== null) {
         echo "Erreur : " . $erreur . "\n";
         return;
     }
 
-    // $wallets[] = $wallet;
-    // setWallets($wallets);
-
     array_push($wallets, $wallet);
-    setWallets($wallets);
+    \Repository\setWallets($wallets);
     echo "Wallet créé avec succès !\n";
 }
 
@@ -37,26 +54,26 @@ function saisieDepot() : array {
 }
 
 function depotService() : void {
-    $wallets   = getWallets();
+    $wallets   = \Repository\getWallets();
     $saisie    = saisieDepot();
     $telephone = $saisie["telephone"];
     $montant   = $saisie["montant"];
 
-    if (!validerMontant($montant)) {
+    if (!\Validator\validerMontant($montant)) {
         echo "Erreur : Le montant doit être strictement positif.\n";
         return;
     }
 
-    $index = trouveIndexTelephone($wallets, $telephone);
+    $index = \Repository\trouveIndexTelephone($wallets, $telephone);
     if ($index === -1) {
         echo "Erreur : Ce numéro n'existe pas.\n";
         return;
     }
 
     $wallets[$index]["solde"] += $montant;
-    setWallets($wallets);
+    \Repository\setWallets($wallets);
 
-    ajouterTransaction([
+    \Repository\ajouterTransaction([
         "type"      => "DEPOT",
         "telephone" => $telephone,
         "montant"   => $montant,
@@ -87,17 +104,17 @@ function saisieRetrait() : array {
 }
 
 function retraitService() : void {
-    $wallets   = getWallets();
+    $wallets   = \Repository\getWallets();
     $saisie    = saisieRetrait();
     $telephone = $saisie["telephone"];
     $montant   = $saisie["montant"];
 
-    if (!validerMontant($montant)) {
+    if (!\Validator\validerMontant($montant)) {
         echo "Erreur : Le montant doit être strictement positif.\n";
         return;
     }
 
-    $index = trouveIndexTelephone($wallets, $telephone);
+    $index = \Repository\trouveIndexTelephone($wallets, $telephone);
     if ($index === -1) {
         echo "Erreur : Ce numéro n'existe pas.\n";
         return;
@@ -105,15 +122,15 @@ function retraitService() : void {
 
     $frais = fraisRetrait($montant);
 
-    if (!validerSoldeSuffisant($wallets[$index]["solde"], $montant, $frais)) {
+    if (!\Validator\validerSoldeSuffisant($wallets[$index]["solde"], $montant, $frais)) {
         echo "Erreur : Solde insuffisant. Solde disponible : " . $wallets[$index]["solde"] . " CFA.\n";
         return;
     }
 
     $wallets[$index]["solde"] -= ($montant + $frais);
-    setWallets($wallets);
+    \Repository\setWallets($wallets);
 
-    ajouterTransaction([
+    \Repository\ajouterTransaction([
         "type"      => "RETRAIT",
         "telephone" => $telephone,
         "montant"   => $montant,
@@ -125,7 +142,7 @@ function retraitService() : void {
 }
 
 function listerTransactionsService() : void {
-    $transactions = getTransactions();
+    $transactions = \Repository\getTransactions();
 
     if (count($transactions) === 0) {
         echo "Aucune transaction pour le moment.\n";

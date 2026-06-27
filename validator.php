@@ -1,5 +1,7 @@
 <?php
 
+namespace Validator;
+
 function champsObligatoires(array $wallet) : bool {
     // if ($wallet["nom"] === "" || $wallet["telephone"] === "" || $wallet["code"] === "") {
     //     return false;

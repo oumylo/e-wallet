@@ -1,5 +1,7 @@
 <?php
 
+namespace Repository;
+
 $wallets = [
     ["nom" => "Oumy LO", "telephone" => "778122604", "code" => "1234", "solde" => 10000]
 ];

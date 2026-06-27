@@ -1,20 +1,21 @@
 <?php
+namespace Controller;
 
 require_once "services.php";
 
 function handle($choix) : void {
     switch ($choix) {
         case '1':
-            creerWalletService();
+            \Services\creerWalletService();
             break;
         case '2':
-            depotService();
+            \Services\depotService();
             break;
         case '3':
-            retraitService();
+            \Services\retraitService();
             break;
         case '4':
-            listerTransactionsService();
+            \Services\listerTransactionsService();
             break;
     }
 }

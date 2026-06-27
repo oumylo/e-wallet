@@ -23,14 +23,23 @@ function getTransactions() {
 
 function ajouterTransaction($transaction) {
     global $transactions;
-    $transactions[] = $transaction;
+    //$transactions[] = $transaction;
+    array_push($transactions, $transaction);
 }
 
 function trouveIndexTelephone(array $wallets, string $telephone) : int {
-    foreach ($wallets as $index => $wallet) {
-        if ($wallet["telephone"] === $telephone) {
-            return $index;
-        }
+
+    $index = array_search( $telephone, array_column($wallets, 'telephone'));
+    if ($index !== false) {
+        return $index;
+    } else {
+        return -1;
     }
-    return -1;
+
+    // foreach ($wallets as $index => $wallet) {
+    //     if ($wallet["telephone"] === $telephone) {
+    //         return $index;
+    //     }
+    // }
+    // return -1;
 }

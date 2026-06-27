@@ -22,7 +22,10 @@ function creerWalletService() : void {
         return;
     }
 
-    $wallets[] = $wallet;
+    // $wallets[] = $wallet;
+    // setWallets($wallets);
+
+    array_push($wallets, $wallet);
     setWallets($wallets);
     echo "Wallet créé avec succès !\n";
 }
@@ -130,11 +133,22 @@ function listerTransactionsService() : void {
     }
 
     echo "\n--- Historique des transactions ---\n";
-    for ($index = 0; $index < count($transactions); $index++) {
 
-        echo ($index + 1) . ". [" . $transactions[$index]["type"] . "] "
-            . "Tel : " . $transactions[$index]["telephone"] . " | "
-            . "Montant : " . $transactions[$index]["montant"] . " CFA | "
-            . "Frais : " . $transactions[$index]["frais"] . " CFA\n";
-    }
+    $index = 1;
+    array_walk($transactions, function($transaction) use (&$index) {
+        echo $index . ". [" . $transaction["type"] . "] "
+            . "Tel : " . $transaction["telephone"] . " | "
+            . "Montant : " . $transaction["montant"] . " CFA | "
+            . "Frais : " . $transaction["frais"] . " CFA\n";
+        $index++;
+    });
+
+
+    // for ($index = 0; $index < count($transactions); $index++) {
+
+    //     echo ($index + 1) . ". [" . $transactions[$index]["type"] . "] "
+    //         . "Tel : " . $transactions[$index]["telephone"] . " | "
+    //         . "Montant : " . $transactions[$index]["montant"] . " CFA | "
+    //         . "Frais : " . $transactions[$index]["frais"] . " CFA\n";
+    // }
 }

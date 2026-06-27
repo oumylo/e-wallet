@@ -1,7 +1,12 @@
 <?php
 
 function champsObligatoires(array $wallet) : bool {
-    if ($wallet["nom"] === "" || $wallet["telephone"] === "" || $wallet["code"] === "") {
+    // if ($wallet["nom"] === "" || $wallet["telephone"] === "" || $wallet["code"] === "") {
+    //     return false;
+    // }
+    // return true;
+
+    if (in_array("", [$wallet["nom"], $wallet["telephone"], $wallet["code"]])) {
         return false;
     }
     return true;
@@ -11,32 +16,44 @@ function valideTelephone(string $telephone) : bool {
     if (strlen($telephone) != 9 || !ctype_digit($telephone)) {
         return false;
     }
+
+    $prefixesValides = ["77", "78", "70", "75", "76"];
     $debut = substr($telephone, 0, 2);
-    if ($debut === "77" || $debut === "78" || $debut === "70" || $debut === "75" || $debut === "76") {
-        return true;
-    }
-    return false;
+    return in_array($debut, $prefixesValides);
+
+    // if ($debut === "77" || $debut === "78" || $debut === "70" || $debut === "75" || $debut === "76") {
+    //     return true;
+    // }
+    // return false;
 }
 
 function uniqueTelephone(array $wallets, string $telephone) : bool {
-    foreach ($wallets as $wallet) {
-        if ($wallet["telephone"] === $telephone) {
-            return false;
-        }
-    }
-    return true;
+    // foreach ($wallets as $wallet) {
+    //     if ($wallet["telephone"] === $telephone) {
+    //         return false;
+    //     }
+    // }
+    // return true;
+
+    $telephones = array_column($wallets, "telephone");
+    return !in_array($telephone, $telephones);
 }
 
 function valideCode(array $wallets, string $code) : bool {
     if (strlen($code) != 4 || !ctype_digit($code)) {
         return false;
     }
-    foreach ($wallets as $wallet) {
-        if ($wallet["code"] === $code) {
-            return false;
-        }
-    }
-    return true;
+
+    $codes = array_column($wallets, "code");
+    return !in_array($code, $codes);
+
+    
+    // foreach ($wallets as $wallet) {
+    //     if ($wallet["code"] === $code) {
+    //         return false;
+    //     }
+    // }
+    // return true;
 }
 
 function verifieSoldeInitial(int $solde) : bool {

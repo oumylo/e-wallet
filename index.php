@@ -15,7 +15,7 @@ do {
     if ($choix === '0') {
         echo "Au revoir !\n";
     } elseif ($choix === '1' || $choix === '2' || $choix === '3' || $choix === '4') {
-        handle($choix);
+        \Controller\handle($choix);
     } else {
         echo "Choix invalide, veuillez réessayer\n";
     }

@@ -1,61 +1,71 @@
 <?php
 
-function validerChampsObligatoires($wallet) {
-    if ($wallet['nom'] === '' || $wallet['telephone'] === '' || $wallet['code'] === '') {
-        return "Tous les champs sont obligatoires.";
+function champsObligatoires(array $wallet) : bool {
+    if ($wallet["nom"] === "" || $wallet["telephone"] === "" || $wallet["code"] === "") {
+        return false;
     }
-    return null;
+    return true;
 }
 
-function validerTelephone($telephone) {
+function valideTelephone(string $telephone) : bool {
     if (strlen($telephone) != 9 || !ctype_digit($telephone)) {
-        return "Le numéro doit contenir exactement 9 chiffres.";
+        return false;
     }
     $debut = substr($telephone, 0, 2);
-    if ($debut !== '77' && $debut !== '78' && $debut !== '76' && $debut !== '75' && $debut !== '70') {
-        return "Le numéro doit commencer par 77, 78, 76, 75 ou 70.";
+    if ($debut === "77" || $debut === "78" || $debut === "70" || $debut === "75" || $debut === "76") {
+        return true;
     }
-    return null;
+    return false;
 }
 
-function validerUniciteTelephone($wallets, $telephone) {
-    for ($i = 0; $i < count($wallets); $i++) {
-        if ($wallets[$i]['telephone'] === $telephone) {
-            return "Ce numéro de téléphone existe déjà.";
+function uniqueTelephone(array $wallets, string $telephone) : bool {
+    foreach ($wallets as $wallet) {
+        if ($wallet["telephone"] === $telephone) {
+            return false;
         }
     }
-    return null;
+    return true;
 }
 
-function validerCode($wallets, $code) {
+function valideCode(array $wallets, string $code) : bool {
     if (strlen($code) != 4 || !ctype_digit($code)) {
-        return "Le code doit contenir exactement 4 chiffres.";
+        return false;
     }
-    for ($i = 0; $i < count($wallets); $i++) {
-        if ($wallets[$i]['code'] === $code) {
-            return "Ce code secret existe déjà.";
+    foreach ($wallets as $wallet) {
+        if ($wallet["code"] === $code) {
+            return false;
         }
     }
-    return null;
+    return true;
 }
 
-function validerSoldeInitial($solde) {
-    if ($solde < 0) {
+function verifieSoldeInitial(int $solde) : bool {
+    return $solde >= 0;
+}
+
+function validerWallet(array $wallets, array $wallet) : ?string {
+    if (!champsObligatoires($wallet)) {
+        return "Veuillez remplir tous les champs obligatoires.";
+    }
+    if (!valideTelephone($wallet["telephone"])) {
+        return "Le numéro doit commencer par 77, 78, 76, 75 ou 70 et contenir 9 chiffres.";
+    }
+    if (!uniqueTelephone($wallets, $wallet["telephone"])) {
+        return "Ce numéro de téléphone existe déjà.";
+    }
+    if (!valideCode($wallets, $wallet["code"])) {
+        return "Le code doit contenir exactement 4 chiffres et être unique.";
+    }
+    if (!verifieSoldeInitial($wallet["solde"])) {
         return "Le solde initial doit être positif ou nul.";
     }
     return null;
 }
 
-function validerMontantPositif($montant) {
-    if ($montant <= 0) {
-        return "Le montant doit être strictement positif.";
-    }
-    return null;
+function validerMontant(int $montant) : bool {
+    return $montant > 0;
 }
 
-function validerSoldeSuffisant($solde, $montant, $frais) {
-    if ($solde < ($montant + $frais)) {
-        return "Solde insuffisant. Solde disponible : " . $solde . " CFA.";
-    }
-    return null;
+function validerSoldeSuffisant(int $solde, int $montant, int $frais) : bool {
+    return $solde >= ($montant + $frais);
 }

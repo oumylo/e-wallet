@@ -1,62 +1,69 @@
 <?php
 
-require_once 'repository.php';
-require_once 'validator.php';
+require_once "repository.php";
+require_once "validator.php";
 
-function creerWalletService() {
-    $wallets = getWallets();
+function saisieWallets() : array {
+    $wallet = ["nom" => "", "telephone" => "", "code" => "", "solde" => 0];
+    $wallet["nom"]       = readline("Veuillez saisir le nom : ");
+    $wallet["telephone"] = readline("Veuillez saisir le téléphone : ");
+    $wallet["code"]      = readline("Veuillez saisir le code : ");
+    $wallet["solde"]     = (int) readline("Veuillez saisir le solde : ");
+    return $wallet;
+}
 
-    $wallet = [];
-    $wallet['nom']       = readline("Nom du client : ");
-    $wallet['telephone'] = readline("Numéro de téléphone : ");
-    $wallet['code']      = readline("Code secret : ");
-    $wallet['solde']     = (int) readline("Solde initial : ");
+function creerWalletService() : void {
+    $wallets  = getWallets();
+    $wallet   = saisieWallets();
+    $erreur   = validerWallet($wallets, $wallet);
 
-    $erreur = validerChampsObligatoires($wallet);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
-
-    $erreur = validerTelephone($wallet['telephone']);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
-
-    $erreur = validerUniciteTelephone($wallets, $wallet['telephone']);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
-
-    $erreur = validerCode($wallets, $wallet['code']);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
-
-    $erreur = validerSoldeInitial($wallet['solde']);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
+    if ($erreur !== null) {
+        echo "Erreur : " . $erreur . "\n";
+        return;
+    }
 
     $wallets[] = $wallet;
     setWallets($wallets);
     echo "Wallet créé avec succès !\n";
 }
 
-function depotService() {
+function saisieDepot() : array {
+    $telephone = readline("Entrer le numéro du dépôt : ");
+    $montant   = (int) readline("Entrer le montant : ");
+    return ["telephone" => $telephone, "montant" => $montant];
+}
+
+function depotService() : void {
     $wallets   = getWallets();
-    $telephone = readline("Numéro de téléphone : ");
-    $montant   = (int) readline("Montant à déposer : ");
+    $saisie    = saisieDepot();
+    $telephone = $saisie["telephone"];
+    $montant   = $saisie["montant"];
 
-    $erreur = validerMontantPositif($montant);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
+    if (!validerMontant($montant)) {
+        echo "Erreur : Le montant doit être strictement positif.\n";
+        return;
+    }
 
-    $index = trouverIndexParTelephone($wallets, $telephone);
-    if ($index === -1) { echo "Erreur : Numéro introuvable.\n"; return; }
+    $index = trouveIndexTelephone($wallets, $telephone);
+    if ($index === -1) {
+        echo "Erreur : Ce numéro n'existe pas.\n";
+        return;
+    }
 
-    $wallets[$index]['solde'] += $montant;
+    $wallets[$index]["solde"] += $montant;
     setWallets($wallets);
 
     ajouterTransaction([
-        'type'      => 'DEPOT',
-        'telephone' => $telephone,
-        'montant'   => $montant,
-        'frais'     => 0
+        "type"      => "DEPOT",
+        "telephone" => $telephone,
+        "montant"   => $montant,
+        "frais"     => 0
     ]);
 
     echo "Dépôt de " . $montant . " CFA effectué avec succès !\n";
 }
 
-function calculerFrais($montant) {
+function fraisRetrait(int $montant) : int {
     if ($montant <= 10000) {
         return 200;
     }
@@ -70,36 +77,51 @@ function calculerFrais($montant) {
     return (int) $frais;
 }
 
-function retraitService() {
+function saisieRetrait() : array {
+    $telephone = readline("Entrer le numéro du retrait : ");
+    $montant   = (int) readline("Entrer le montant : ");
+    return ["telephone" => $telephone, "montant" => $montant];
+}
+
+function retraitService() : void {
     $wallets   = getWallets();
-    $telephone = readline("Numéro de téléphone : ");
-    $montant   = (int) readline("Montant à retirer : ");
+    $saisie    = saisieRetrait();
+    $telephone = $saisie["telephone"];
+    $montant   = $saisie["montant"];
 
-    $erreur = validerMontantPositif($montant);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
+    if (!validerMontant($montant)) {
+        echo "Erreur : Le montant doit être strictement positif.\n";
+        return;
+    }
 
-    $index = trouverIndexParTelephone($wallets, $telephone);
-    if ($index === -1) { echo "Erreur : Numéro introuvable.\n"; return; }
+    $index = trouveIndexTelephone($wallets, $telephone);
+    if ($index === -1) {
+        echo "Erreur : Ce numéro n'existe pas.\n";
+        return;
+    }
 
-    $frais  = calculerFrais($montant);
-    $erreur = validerSoldeSuffisant($wallets[$index]['solde'], $montant, $frais);
-    if ($erreur !== null) { echo "Erreur : " . $erreur . "\n"; return; }
+    $frais = fraisRetrait($montant);
 
-    $wallets[$index]['solde'] -= ($montant + $frais);
+    if (!validerSoldeSuffisant($wallets[$index]["solde"], $montant, $frais)) {
+        echo "Erreur : Solde insuffisant. Solde disponible : " . $wallets[$index]["solde"] . " CFA.\n";
+        return;
+    }
+
+    $wallets[$index]["solde"] -= ($montant + $frais);
     setWallets($wallets);
 
     ajouterTransaction([
-        'type'      => 'RETRAIT',
-        'telephone' => $telephone,
-        'montant'   => $montant,
-        'frais'     => $frais
+        "type"      => "RETRAIT",
+        "telephone" => $telephone,
+        "montant"   => $montant,
+        "frais"     => $frais
     ]);
 
-    echo "Retrait effectué !\n";
+    echo "Retrait effectué avec succès !\n";
     echo "Montant : " . $montant . " CFA | Frais : " . $frais . " CFA | Total débité : " . ($montant + $frais) . " CFA\n";
 }
 
-function listerTransactionsService() {
+function listerTransactionsService() : void {
     $transactions = getTransactions();
 
     if (count($transactions) === 0) {
@@ -108,10 +130,11 @@ function listerTransactionsService() {
     }
 
     echo "\n--- Historique des transactions ---\n";
-    for ($i = 0; $i < count($transactions); $i++) {
-        echo ($i + 1) . ". [" . $transactions[$i]['type'] . "] "
-            . "Tel : " . $transactions[$i]['telephone'] . " | "
-            . "Montant : " . $transactions[$i]['montant'] . " CFA | "
-            . "Frais : " . $transactions[$i]['frais'] . " CFA\n";
+    for ($index = 0; $index < count($transactions); $index++) {
+
+        echo ($index + 1) . ". [" . $transactions[$index]["type"] . "] "
+            . "Tel : " . $transactions[$index]["telephone"] . " | "
+            . "Montant : " . $transactions[$index]["montant"] . " CFA | "
+            . "Frais : " . $transactions[$index]["frais"] . " CFA\n";
     }
 }

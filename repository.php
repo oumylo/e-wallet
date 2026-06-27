@@ -1,6 +1,9 @@
 <?php
 
-$wallets = [];
+$wallets = [
+    ["nom" => "Oumy LO", "telephone" => "778122604", "code" => "1234", "solde" => 10000]
+];
+
 $transactions = [];
 
 function getWallets() {
@@ -23,10 +26,10 @@ function ajouterTransaction($transaction) {
     $transactions[] = $transaction;
 }
 
-function trouverIndexParTelephone($wallets, $telephone) {
-    for ($i = 0; $i < count($wallets); $i++) {
-        if ($wallets[$i]['telephone'] === $telephone) {
-            return $i;
+function trouveIndexTelephone(array $wallets, string $telephone) : int {
+    foreach ($wallets as $index => $wallet) {
+        if ($wallet["telephone"] === $telephone) {
+            return $index;
         }
     }
     return -1;

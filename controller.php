@@ -1,8 +1,8 @@
 <?php
 
-require_once 'services.php';
+require_once "services.php";
 
-function handle($choix) {
+function handle($choix) : void {
     switch ($choix) {
         case '1':
             creerWalletService();
